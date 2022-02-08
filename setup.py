@@ -37,7 +37,7 @@ setup(
     # For a discussion on single-sourcing the version across setup.py and the
     # project code, see
     # https://packaging.python.org/guides/single-sourcing-package-version/
-    version='0.0.1',  # Required
+    version='0.1.0',  # Required
 
     # This is a one-line description or tagline of what your project does. This
     # corresponds to the "Summary" metadata field:
@@ -193,11 +193,11 @@ setup(
     # issues, where the source is hosted, where to say thanks to the package
     # maintainers, and where to support the project financially. The key is
     # what's used to render the link text on PyPI.
-    #project_urls={  # Optional
-    #    'Bug Reports': 'https://github.com/pypa/sampleproject/issues',
+    project_urls={  # Optional
+        'Bug Reports': 'https://github.com/F9R/ihcpmslib-wrappers/issues',
     #    'Funding': 'https://donate.pypi.org',
     #    'Say Thanks!': 'http://saythanks.io/to/example',
-    #    'Source': 'https://github.com/pypa/sampleproject/',
-    #},
+        'Source': 'https://github.com/F9R/ihcpmslib-wrappers',
+    },
 )
 
