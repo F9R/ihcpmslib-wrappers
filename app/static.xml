@@ -1,0 +1,1 @@
+﻿<Network><StaticIPv4><IP>10.2.2.8</IP><Subnet>255.255.255.224</Subnet><Gateway>10.2.2.1</Gateway><DNS>10.10.10.10</DNS></StaticIPv4></Network>
