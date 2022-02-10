@@ -35,6 +35,9 @@ async def main():
         eru = pms.StartEventReceiver(nics[0].Id)
     print("EventReceiver Uri: " + eru)
 
+    # status = PmsWrapper.GetStatus("10.2.2.5")
+    # status = PmsWrapper.GetStatus("10.2.2.8")
+
     '''SCILA'''
     if config['IHC']['SCILA'] == "True":
         # Finder
@@ -47,12 +50,17 @@ async def main():
         scila = pms.Create("http://10.2.2.5/scila.wsdl")
         scila.RegisterStatusEventCallback(OnStatusEvent)
         print(scila.DeviceName)
+        s = GetStatus(scila)
+        assert s.State != "InError"
         # SiLA Commands
         rv = scila.Reset()
-        if rv.Success == False:
-            print("SCILA Reset error: " + rv.Message)
-            print("Exit")
-            return
+        assert rv.Success == True
+        # if rv.Success == False:
+        #     print("SCILA Reset error: " + rv.Message)
+        #     print("Exit")
+        #     return
+        s = GetStatus(scila)
+        assert s.State == "Standby"
         rv = scila.GetConfiguration()
         assert rv.Success == True
         print(rv.ResponseData.LogLevel)
@@ -68,6 +76,8 @@ async def main():
         assert rv.Success == True
         rv = scila.Initialize()
         assert rv.Success == True
+        s = GetStatus(scila)
+        assert s.State == "Idle"
         rv = scila.Delay(1)
         assert rv.Success == True
         rv = scila.GetAutoBoostCo2()
@@ -148,12 +158,17 @@ async def main():
         odtc.RegisterStatusEventCallback(OnStatusEvent)
         odtc.RegisterDataEventCallback(OnDataEvent)
         print(odtc.DeviceName)
+        s = GetStatus(odtc)
+        assert s.State != "InError"
         rv = odtc.Reset()
-        if rv.Success == False:
-            print("ODTC Reset error: " + rv.Message)
-            print("Exit")
-            #return
-            exit()
+        assert rv.Success == True
+        # if rv.Success == False:
+        #     print("ODTC Reset error: " + rv.Message)
+        #     print("Exit")
+        #     #return
+        #     exit()
+        s = GetStatus(odtc)
+        assert s.State == "Standby"
         rv = odtc.GetConfiguration()
         assert rv.Success == True
         print(rv.ResponseData.LogLevel)
@@ -168,6 +183,8 @@ async def main():
         assert rv.Success == True
         rv = odtc.Initialize()
         assert rv.Success == True
+        s = GetStatus(odtc)
+        assert s.State == "Idle"
         rv = odtc.GetParameters()
         assert rv.Success == True
         print(rv.ResponseData.CSVSeparatorCharacter)
@@ -215,6 +232,16 @@ async def main():
     
     #input("Press Enter to continue...")
     print("Exit")
+
+def GetStatus(device: DeviceWrapper) -> StatusWrapper:
+    if  device is None:
+        raise TypeError
+    (r, s) = device.GetStatus()
+    assert r.ReturnCode == 1
+    logging.info(s.DeviceId + " " + s.CurrentTime + " " + str(s.Locked) + " " + s.PMSId + " " + s.State)
+    logging.info(s.SubStates)
+    return s
+
 
 def OnStatusEvent(sea: StatusEventArgsWrapper):
     assert sea is not None

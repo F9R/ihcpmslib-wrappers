@@ -11,5 +11,7 @@ if config['IHC']['SCILA'] == "True":
     from .scilaConfigXml import ScilaConfigXmlWrapper
     from .scilaParamsXml import ScilaParamsXmlWrapper
 from .pms import PmsWrapper
+from .device import DeviceWrapper
+from .status import StatusWrapper
 from .networkInterfaceTypes import NetworkInterfaceTypesWrapper
 from .statusEventArgs import StatusEventArgsWrapper

@@ -1,7 +1,9 @@
 import logging
+from typing import List, Tuple
 
-from typing import List
+from .silaReturnValue import SiLAReturnValueWrapper
 from .responseValue import ResponseValueWrapper
+from .status import StatusWrapper
 
 import clr
 from System import Nullable
@@ -98,6 +100,12 @@ class DeviceWrapper:
         except CommandException as ex:
             logging.error(ex.Message)
             raise
+
+    '''ISynchronousCommands'''
+
+    def GetStatus(self) -> Tuple[SiLAReturnValueWrapper, StatusWrapper]:
+        [r, s] = self._d.GetStatus(None)
+        return (SiLAReturnValueWrapper(r), StatusWrapper(s))
 
     '''IMandatoryCommands'''
 
