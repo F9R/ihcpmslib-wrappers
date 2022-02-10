@@ -13,5 +13,6 @@ if config['IHC']['SCILA'] == "True":
 from .pms import PmsWrapper
 from .device import DeviceWrapper
 from .status import StatusWrapper
+from .deviceIdentification import DeviceIdentificationWrapper
 from .networkInterfaceTypes import NetworkInterfaceTypesWrapper
 from .statusEventArgs import StatusEventArgsWrapper

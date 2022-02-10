@@ -4,6 +4,7 @@ from typing import List, Tuple
 from .silaReturnValue import SiLAReturnValueWrapper
 from .responseValue import ResponseValueWrapper
 from .status import StatusWrapper
+from .deviceIdentification import DeviceIdentificationWrapper
 
 import clr
 from System import Nullable
@@ -106,6 +107,10 @@ class DeviceWrapper:
     def GetStatus(self) -> Tuple[SiLAReturnValueWrapper, StatusWrapper]:
         [r, s] = self._d.GetStatus(None)
         return (SiLAReturnValueWrapper(r), StatusWrapper(s))
+
+    def GetDeviceIdentification(self) -> Tuple[SiLAReturnValueWrapper, DeviceIdentificationWrapper]:
+        [r, di] = self._d.GetDeviceIdentification(None)
+        return (SiLAReturnValueWrapper(r), DeviceIdentificationWrapper(di))
 
     '''IMandatoryCommands'''
 

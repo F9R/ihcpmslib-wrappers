@@ -50,6 +50,8 @@ async def main():
         scila = pms.Create("http://10.2.2.5/scila.wsdl")
         scila.RegisterStatusEventCallback(OnStatusEvent)
         print(scila.DeviceName)
+        di = GetDeviceIdentification(scila)
+        assert di.DeviceName == scila.DeviceName
         s = GetStatus(scila)
         assert s.State != "InError"
         # SiLA Commands
@@ -158,6 +160,8 @@ async def main():
         odtc.RegisterStatusEventCallback(OnStatusEvent)
         odtc.RegisterDataEventCallback(OnDataEvent)
         print(odtc.DeviceName)
+        di = GetDeviceIdentification(odtc)
+        assert di.DeviceName == odtc.DeviceName
         s = GetStatus(odtc)
         assert s.State != "InError"
         rv = odtc.Reset()
@@ -234,14 +238,21 @@ async def main():
     print("Exit")
 
 def GetStatus(device: DeviceWrapper) -> StatusWrapper:
-    if  device is None:
+    if device is None:
         raise TypeError
     (r, s) = device.GetStatus()
     assert r.ReturnCode == 1
-    logging.info(s.DeviceId + " " + s.CurrentTime + " " + str(s.Locked) + " " + s.PMSId + " " + s.State)
-    logging.info(s.SubStates)
+    logging.debug(s.DeviceId + " " + s.CurrentTime + " " + str(s.Locked) + " " + s.PMSId + " " + s.State)
+    logging.debug(s.SubStates)
     return s
 
+def GetDeviceIdentification(device: DeviceWrapper) -> DeviceIdentificationWrapper:
+    if device is None:
+        raise TypeError
+    (r, di) = device.GetDeviceIdentification()
+    assert r.ReturnCode == 1
+    logging.debug(di.DeviceName + " " + di.DeviceSerialNumber + " " + di.DeviceFirmwareVersion + " " + di.DeviceManufacturer + " " + di.Wsdl + " " + str(di.SiLADeviceClass))
+    return di 
 
 def OnStatusEvent(sea: StatusEventArgsWrapper):
     assert sea is not None
