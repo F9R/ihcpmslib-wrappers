@@ -243,7 +243,6 @@ def GetStatus(device: DeviceWrapper) -> StatusWrapper:
     (r, s) = device.GetStatus()
     assert r.ReturnCode == 1
     logging.debug(s.DeviceId + " " + s.CurrentTime + " " + str(s.Locked) + " " + s.PMSId + " " + s.State)
-    logging.debug(s.SubStates)
     return s
 
 def GetDeviceIdentification(device: DeviceWrapper) -> DeviceIdentificationWrapper:
@@ -275,9 +274,12 @@ if config['IHC']['ODTC'] == "True":
         while i < iterations:
             at = odtc.ReadActualTemperature().ResponseData.SensorValues
             print("Async Polling RAT - Mount: " + str(at.Mount / 100))
-            #await asyncio.sleep(1)
             time.sleep(1)
             i += 1
+        # Test SubStates (parallel command processing)
+        di = GetStatus(odtc)
+        for value in di.SubStates:
+            print("SubStates: " + value.CommandName + " " + str(value.RequestId) + " " + value.CurrentState + " " + str(value.QueuePosition) + " " + value.StartedAt)
         print("StopMethod (from PollRAT)")
         res = odtc.StopMethod()
         assert res.Success == True
