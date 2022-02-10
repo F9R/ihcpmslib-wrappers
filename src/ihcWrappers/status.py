@@ -1,5 +1,4 @@
 from typing import List
-
 from .state import StateWrapper
 from .commandDescription import CommandDescriptionWrapper
 
@@ -30,5 +29,9 @@ class StatusWrapper:
 
     @property
     def SubStates(self) -> List[CommandDescriptionWrapper]:
-        return self.__s.SubStates
+        ss = []
+        tmp =  self.__s.SubStates
+        for value in tmp:
+            ss.append(CommandDescriptionWrapper(value))
+        return ss
 

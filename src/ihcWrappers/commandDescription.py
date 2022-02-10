@@ -16,7 +16,7 @@ class CommandDescriptionWrapper:
 
     @property
     def QueuePosition(self) -> int:
-        return self.__cd.QueuePosition
+        return self.__cd.QueuePosition # nullable
 
     @property
     def RequestId(self) -> int:
@@ -24,4 +24,8 @@ class CommandDescriptionWrapper:
 
     @property
     def StartedAt(self) -> str:
-        return self.__cd.StartedAt.ToString()
+        sa = self.__cd.StartedAt # nullable
+        if sa is None:
+            return None
+        else:
+            return self.__cd.StartedAt.ToString() 

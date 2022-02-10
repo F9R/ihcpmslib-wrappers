@@ -7,7 +7,7 @@ class StateWrapper(Enum):
     Standby = 2
     Initializing = 3
     Idle = 4
-    Busy = 5,
+    Busy = 5
     Paused = 6
     ErrorHandling = 7
     InError = 8
