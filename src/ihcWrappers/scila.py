@@ -26,23 +26,16 @@ from System import Nullable
 from System import Int32
 from System import Double
 from System import Boolean
-#from IHC_PMS_Lib import *
-from IHC_PMS_Lib import SiLAReturnValue
+
 from IHC_PMS_Lib import SiLARequestException
 from IHC_PMS_Lib import SiLAResponseException
 from IHC_PMS_Lib import CommandException
-# from IHC_PMS_Lib.API import *
-# from IHC_PMS_Lib.DeviceFinder import *
-# from IHC_PMS_Lib.Scila.Finder import * 
-# from IHC_PMS_Lib.Scila import * 
-# from IHC_PMS_Lib.Scila.Factory import *
+from IHC_PMS_Lib.Scila import Scila
 
 
 class ScilaWrapper(DeviceWrapper):
     def __init__(self, scila):
         super(ScilaWrapper, self).__init__(scila)
-        #self.__scila = scila
-        ##self.__sDel = None
         self._d.StatusEvent += self.__StatusEvent
         logging.debug("ScilaWrapper ctor")
 
@@ -51,9 +44,6 @@ class ScilaWrapper(DeviceWrapper):
         if self._sDel is not None:
             #logging.debug("Calling StatusEvent Callback")
             self._sDel(StatusEventArgsWrapper(sea))
-
-    # def RegisterStatusEventCallback(self, delegate):
-    #     self.__sDel = delegate
 
     def BoostCo2(self, boostDuration: int) -> ResponseValueWrapper:
         try:
@@ -325,6 +315,10 @@ class ScilaWrapper(DeviceWrapper):
         except CommandException as ex:
             logging.error(ex.Message)
             raise
+
+    @staticmethod
+    def GetAssemblyVersion() -> str:
+        return Scila.GetVersion()
 
 
 # from .eventDescription import EventDescription

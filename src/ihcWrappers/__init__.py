@@ -7,6 +7,7 @@ if config['IHC']['ODTC'] == "True":
     from .odtcConfigXml import OdtcConfigXmlWrapper
     from .odtcParamsXml import OdtcParamsXmlWrapper
 if config['IHC']['SCILA'] == "True":
+    from .scila import ScilaWrapper
     from .scilaFinder import ScilaFinderWrapper
     from .scilaConfigXml import ScilaConfigXmlWrapper
     from .scilaParamsXml import ScilaParamsXmlWrapper

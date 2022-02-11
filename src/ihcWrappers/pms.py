@@ -1,6 +1,9 @@
 import logging
-from typing import List
-from .device import DeviceWrapper
+from typing import List, Tuple
+
+from .status import StatusWrapper
+from .deviceIdentification import DeviceIdentificationWrapper
+from .silaReturnValue import SiLAReturnValueWrapper
 from .networkInterfaceTypes import NetworkInterfaceTypesWrapper
 from .networkInterface import NetworkInterfaceWrapper
 
@@ -16,6 +19,7 @@ from System import Uri
 from System import TimeSpan
 from System import Nullable
 from System import UInt16
+from System.Net import IPAddress
 
 from IHC_PMS_Lib import PMS
 from IHC_PMS_Lib import EventReceiverException
@@ -33,6 +37,7 @@ if config['IHC']['SCILA'] == "True":
     from IHC_PMS_Lib.Scila import Scila
     from IHC_PMS_Lib.Scila.Factory import ScilaFactory
     from .scila import ScilaWrapper
+
 
 class PmsWrapper():
     def __init__(self):
@@ -80,9 +85,9 @@ class PmsWrapper():
             # print(uri)
             raise
 
-    def Create(self, wsdlUri: str):# -> DeviceWrapper:
+    def Create(self, wsdlUri: str, lockId: str = None):# -> DeviceWrapper:
         try:
-            device = DeviceFactory.Create(self.__pms, Uri(wsdlUri), TimeSpan.FromSeconds(10), None, None)
+            device = DeviceFactory.Create(self.__pms, Uri(wsdlUri), TimeSpan.FromSeconds(10), None, lockId)
             if config['IHC']['ODTC'] == "True":
                 if type(device) is Odtc:
                     return OdtcWrapper(device)
@@ -97,21 +102,21 @@ class PmsWrapper():
             raise
         
     if config['IHC']['ODTC'] == "True":
-        def CreateOdtc(self, wsdlUri: str) -> OdtcWrapper:
+        def CreateOdtc(self, wsdlUri: str, lockId: str = None) -> OdtcWrapper:
             try:
-                odtc = OdtcFactory.Create(self.__pms, Uri(wsdlUri), TimeSpan.FromSeconds(10), None, None)
+                odtc = OdtcFactory.Create(self.__pms, Uri(wsdlUri), TimeSpan.FromSeconds(10), None, lockId)
                 return OdtcWrapper(odtc)
             except ConnectException as ex:
                 logging.error(ex.Message)
                 raise
             except DeviceException as ex:
                 logging.error(ex.Message)
-                raise
+                raise 
 
     if config['IHC']['SCILA'] == "True":
-        def CreateScila(self, wsdlUri: str) -> ScilaWrapper:
+        def CreateScila(self, wsdlUri: str, lockId: str = None) -> ScilaWrapper:
             try:
-                scila = ScilaFactory.Create(self.__pms, Uri(wsdlUri), TimeSpan.FromSeconds(10), None, None)
+                scila = ScilaFactory.Create(self.__pms, Uri(wsdlUri), TimeSpan.FromSeconds(10), None, lockId)
                 return ScilaWrapper(scila)
             except ConnectException as ex:
                 logging.error(ex.Message)
@@ -136,3 +141,35 @@ class PmsWrapper():
             return self.__pms.GetSupportedNICs()
         else:
             return self.__pms.GetSupportedNICs(types)
+
+    @staticmethod
+    def GetAssemblyVerion() -> str:
+        return PMS.GetVersion()
+
+    @staticmethod
+    def GetStatus(ipAddress: str, timeout: int = 5000) -> StatusWrapper:
+        """Pre-connection SiLA GetStatus.
+        Linux/Mac: requires IHC_PMS_Lib.dll > 1.9.0.0
+        Windows: all versions
+
+        ipAddress -- IPv4 address like 192.168.0.2
+        timeout -- timeout in ms (default 5000)
+
+        Returns -- SiLA Status
+        """
+        return StatusWrapper(PMS.GetStatus(IPAddress.Parse(ipAddress), 8080, timeout))
+
+    @staticmethod
+    def GetDeviceIdentification(ipAddress: str, lockId: str = None, timeout: int = 5000) -> Tuple[SiLAReturnValueWrapper, DeviceIdentificationWrapper]:
+        """Pre-connection SiLA GetDeviceIdentification.
+        Linux/Mac: requires IHC_PMS_Lib.dll > 1.9.0.0
+        Windows: all versions
+
+        ipAddress -- IPv4 address like 192.168.0.2
+        lockId -- lockId (default None) if device is locked
+        timeout -- timeout in ms (default 5000)
+
+        Returns -- SiLA DeviceIdentification
+        """
+        [r, di] = PMS.GetDeviceIdentification(IPAddress.Parse(ipAddress), 8080, lockId, None, timeout)
+        return (SiLAReturnValueWrapper(r), DeviceIdentificationWrapper(di))

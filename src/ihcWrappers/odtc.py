@@ -23,7 +23,7 @@ from System import Int32
 from IHC_PMS_Lib import SiLARequestException
 from IHC_PMS_Lib import SiLAResponseException
 from IHC_PMS_Lib import CommandException
-# from IHC_PMS_Lib.Odtc.MethodXML import MethodSet
+from IHC_PMS_Lib.Odtc import Odtc
 
 class OdtcWrapper(DeviceWrapper):
     def __init__(self, odtc):
@@ -172,6 +172,11 @@ class OdtcWrapper(DeviceWrapper):
             logging.error(ex.Message)
             raise
 
+    
+    @staticmethod
+    def GetAssemblyVersion() -> str:
+        return Odtc.GetVersion()
+
 
 class DataEventOdtcSensorValue:
     def __init__(self, sensorValue) -> None:
@@ -191,47 +196,3 @@ class DataEventOdtcSensorValue:
     def _get_duration(self) -> float:
         return self.__sv.Time
     duration = property(_get_duration)
-
-
-# class SensorValues:
-#     def __init__(self, sensorValues) -> None:
-#         self.__sv = sensorValues
-
-#     def __str__(self):
-#         return self.__sv.ToString()
-
-#     def _get_ambient(self) -> int:
-#         return self.__sv.Ambient
-#     ambient = property(_get_ambient)
-
-#     def _get_mount(self) -> int:
-#         return self.__sv.Mount
-#     mount = property(_get_mount)
-
-#     def _get_mountMonitor(self) -> int:
-#         return self.__sv.MountMonitor
-#     mountMonitor = property(_get_mountMonitor)
-
-#     def _get_heatsink(self) -> int:
-#         return self.__sv.Heatsink
-#     heatsink = property(_get_heatsink)
-
-#     def _get_heatsinkTec(self) -> int:
-#         return self.__sv.HeatsinkTec
-#     heatsinkTec = property(_get_heatsinkTec)
-
-#     def _get_Lid(self) -> int:
-#         return self.__sv.Lid
-#     lid = property(_get_Lid)
-
-#     def _get_LidMonitor(self) -> int:
-#         return self.__sv.LidMonitor
-#     lidMonitor = property(_get_LidMonitor)
-
-#     def _get_Pcb(self) -> int:
-#         return self.__sv.Pcb
-#     pcb = property(_get_Pcb)
-
-#     def _get_Timestamp(self) -> str:
-#         return self.__sv.STimestamp
-#     timestamp = property(_get_Timestamp)
