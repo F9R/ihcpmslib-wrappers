@@ -6,14 +6,17 @@ if config['IHC']['ODTC'] == "True":
     from .odtc import DataEventOdtcSensorValue, OdtcWrapper
     from .odtcConfigXml import OdtcConfigXmlWrapper
     from .odtcParamsXml import OdtcParamsXmlWrapper
+    from .odtcDownloader import OdtcDownloaderWrapper
 if config['IHC']['SCILA'] == "True":
     from .scila import ScilaWrapper
     from .scilaFinder import ScilaFinderWrapper
     from .scilaConfigXml import ScilaConfigXmlWrapper
     from .scilaParamsXml import ScilaParamsXmlWrapper
+    from .scilaDownloader import ScilaDownloaderWrapper
 from .pms import PmsWrapper
 from .device import DeviceWrapper
 from .status import StatusWrapper
 from .deviceIdentification import DeviceIdentificationWrapper
 from .networkInterfaceTypes import NetworkInterfaceTypesWrapper
 from .statusEventArgs import StatusEventArgsWrapper
+from .ftpItem import FtpItemWrapper
