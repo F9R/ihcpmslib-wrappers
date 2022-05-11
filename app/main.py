@@ -7,7 +7,7 @@ config = configparser.ConfigParser()
 config.read('config.ini')
 
 # IMPORTANT Path to IHC_PMS_Lib dlls
-sys.path.append("/home/for/dev/IHC_PMS_Lib_1.9.1.0/bin")
+sys.path.append("/home/for/dev/IHC_PMS_Lib_1.9.2.0/bin")
 from ihcWrappers import *
 
 
@@ -19,12 +19,14 @@ async def main():
     print("PMS version: " + PmsWrapper.GetAssemblyVerion())
     
     pms = PmsWrapper()
-    pms.IpAddressIndex(1) #e.g. Linux VPN (multihomed adapter ip index)
+    # pms.IpAddressIndex(1) #e.g. Linux VPN (multihomed adapter ip index)
 
     nics = pms.GetSupportedNICs() #default wired ethernet
     #nics = pms.GetSupportedNICs(NetworkInterfaceTypesWrapper.Vpn) # Windows VPN
     if len(nics) == 0:
         nics = pms.GetSupportedNICs(NetworkInterfaceTypesWrapper.WiredEthernet + NetworkInterfaceTypesWrapper.VirtualEthernet)
+    if len(nics) > 1:
+        nics = pms.GetSupportedNICs(NetworkInterfaceTypesWrapper.Vpn)
     for nic in nics:
         print("Network interface: " + nic.Id + " " + nic.Name + " " + nic.Description)
     # alt static
@@ -41,6 +43,8 @@ async def main():
     '''SCILA'''
     if config['IHC']['SCILA'] == "True":
         print("SCILA Dll Version: " + ScilaWrapper.GetAssemblyVersion())
+        deviceIp = "192.168.1.128" # predefined scila ip
+
         # Finder
         frScilas = ScilaFinderWrapper.SearchDevices()
         if len(frScilas) == 0:
@@ -55,12 +59,22 @@ async def main():
             assert r.ReturnCode == 1
             print(val.Name + " pre-connect GetDeviceIdentification: " + di.DeviceName + " " + di.Wsdl + " " + di.DeviceFirmwareVersion)
 
+        status = PmsWrapper.GetStatus(deviceIp)
+        (r, di) = PmsWrapper.GetDeviceIdentification(deviceIp)
+        assert r.ReturnCode == 1
+
+        # Download logs and latest trace file
+        print("Start log/trace download...")
+        error = DownloadScilaLogTraces(ip=deviceIp, path="/home/for/dev/logDownload/" + di.DeviceName, traceFileCount=1, logs=True)
+        assert(error is None)
+        print("log/trace download finished")
+
         # Create device
         try:
-            scila = pms.Create("http://10.2.2.5/scila.wsdl")
+            scila = pms.Create("http://" + deviceIp + "/scila.wsdl")
         except Exception as ex:
             if (ex.Message) == "Invalid lockId.":
-                scila = pms.Create("http://10.2.2.5/scila.wsdl", "myLockId")
+                scila = pms.Create("http://" + deviceIp + "/scila.wsdl", "myLockId")
             else:
                 raise
         # Register Callback(s)
@@ -194,12 +208,15 @@ async def main():
         # rv = scila.StoreAtPosition(2) #TODO Fix CommandException
         # assert rv.Success == True
         # Disconnect
+        print(scila.DeviceName + " dispose")
         scila.Dispose()
 
 
     '''ODTC'''
     if config['IHC']['ODTC'] == "True":
         print("ODTC Dll Version: " + OdtcWrapper.GetAssemblyVersion())
+        deviceIp = "192.168.1.195" # predefined odtc ip
+
         frOdtcs = OdtcFinderWrapper.SearchDevices()
         if len(frOdtcs) == 0:
             print("No ODTC found")
@@ -215,12 +232,22 @@ async def main():
         # with pms.Create("http://10.2.2.8/odtc.wsdl") as odtc:
         #     odtc.Reset()
         #     odtc.Initialize()
+
+        status = PmsWrapper.GetStatus(deviceIp)
+        (r, di) = PmsWrapper.GetDeviceIdentification(deviceIp)
+        assert r.ReturnCode == 1
+        # Download logs and latest trace file
+        print("Start log/trace download...")
+        error = DownloadOdtcLogTraces(ip=deviceIp, path="/home/for/dev/logDownload/" + di.DeviceName, traceFileCount=1, logs=True)
+        assert(error is None)
+        print("log/trace download finished")
+
         # Create device
         try:
-            odtc = pms.Create("http://10.2.2.8/odtc.wsdl")
+            odtc = pms.Create("http://" + deviceIp + "/odtc.wsdl")
         except Exception as ex:
             if (ex.Message) == "Invalid lockId.":
-                odtc = pms.Create("http://10.2.2.8/odtc.wsdl", "myLockId")
+                odtc = pms.Create("http://" + deviceIp + "/odtc.wsdl", "myLockId")
             else:
                 raise
         # Register Callback(s)
@@ -273,6 +300,7 @@ async def main():
         assert rv.Success == True
         rv = odtc.StopMethod()
         assert rv.Success == True
+        time.sleep(0.1) # workaround odtc reports State==Busy
         s = GetStatus(odtc)
         assert s.State == "Idle"
         rv = odtc.GetParameters()
@@ -318,6 +346,7 @@ async def main():
         assert rv.Success == True
         print("CloseDoor finished")
         t.join()
+        print(odtc.DeviceName + " dispose")
         odtc.Dispose()
     
     #input("Press Enter to continue...")
@@ -373,5 +402,74 @@ if config['IHC']['ODTC'] == "True":
         res = odtc.StopMethod()
         assert res.Success == True
 
+if config['IHC']['ODTC'] == "True":
+    def DownloadOdtcLogTraces(ip: str, path: str, traceFileCount: int, logs: bool = True):
+        assert ip != None
+        assert path != None
+        downloader = OdtcDownloaderWrapper()
+        if logs:
+            # Download SiLA logs
+            items = downloader.GetItems(ip, "SiLA")
+            for item in items:
+                item.Download = True
+            error = downloader.DownloadFtpItems(items, path)
+            if error is not None:
+                return error
+            # Download device logs
+            items = downloader.GetItems(ip, "Odtc")
+            for item in items:
+                item.Download = True
+            error = downloader.DownloadFtpItems(items, path)
+            if error is not None:
+                return error
+        # Download traces files
+        if traceFileCount == 0:
+            return None
+        items = downloader.GetItems(ip, "Traces")
+        traces = [x for x in items if x.IsTrace == True]
+        def TakeValue(item):
+            return item.Value
+        traces.sort(key=TakeValue, reverse=True)
+        for idx, x in enumerate(traces):
+            if idx < traceFileCount or traceFileCount < 0:
+                traces[idx].Download = True
+            else:
+                break
+        return downloader.DownloadFtpItems(traces, path)
+
+if config['IHC']['SCILA'] == "True":
+    def DownloadScilaLogTraces(ip: str, path: str, traceFileCount: int, logs: bool = True) -> str:
+        assert ip != None
+        assert path != None
+        downloader = ScilaDownloaderWrapper()
+        if logs:
+            # Download SiLA logs
+            items = downloader.GetItems(ip, "SiLA")
+            for item in items:
+                item.Download = True
+            error = downloader.DownloadFtpItems(items, path)
+            if error is not None:
+                return error
+            # Download device logs
+            items = downloader.GetItems(ip, "Scila/Logs")
+            for item in items:
+                item.Download = True
+            error = downloader.DownloadFtpItems(items, path)
+            if error is not None:
+                return error
+        # Download traces files
+        if traceFileCount == 0:
+            return None
+        items = downloader.GetItems(ip, "Scila/Traces")
+        traces = [x for x in items if x.IsTrace == True]
+        def TakeNumber(item: FtpItemWrapper):
+            return int(item.Value[7: item.Value.index(".")])
+        traces.sort(key=TakeNumber, reverse=True)
+        for idx, x in enumerate(traces):
+            if idx < traceFileCount or traceFileCount < 0:
+                traces[idx].Download = True
+            else:
+                break
+        return downloader.DownloadFtpItems(traces, path)
 
 asyncio.run(main())
