@@ -20,12 +20,12 @@ from System import TimeSpan
 from System import Nullable
 from System import UInt16
 from System.Net import IPAddress
+from System.Net.NetworkInformation import NetworkInterface
 
 from IHC_PMS_Lib import PMS
 from IHC_PMS_Lib import EventReceiverException
 from IHC_PMS_Lib import ConnectException
 from IHC_PMS_Lib import DeviceException
-from IHC_PMS_Lib.API import NetworkInterfaceTypes
 from IHC_PMS_Lib.Factory import DeviceFactory
 
 if config['IHC']['ODTC'] == "True":
@@ -142,8 +142,14 @@ class PmsWrapper():
         else:
             return self.__pms.GetSupportedNICs(types)
 
+    def GetNICs(self):
+        return NetworkInterface.GetAllNetworkInterfaces()
+
     @staticmethod
     def GetAssemblyVerion() -> str:
+        """Returns AssemblyInformationalVersion
+        Requires IHC_PMS_Lib.dll > 1.9.0.0
+        """
         return PMS.GetVersion()
 
     @staticmethod
@@ -157,7 +163,11 @@ class PmsWrapper():
 
         Returns -- SiLA Status
         """
-        return StatusWrapper(PMS.GetStatus(IPAddress.Parse(ipAddress), 8080, timeout))
+        try:
+            return StatusWrapper(PMS.GetStatus(IPAddress.Parse(ipAddress), 8080, timeout))
+        except ConnectException as ex:
+            logging.error(ex.Message)
+            raise
 
     @staticmethod
     def GetDeviceIdentification(ipAddress: str, lockId: str = None, timeout: int = 5000) -> Tuple[SiLAReturnValueWrapper, DeviceIdentificationWrapper]:
@@ -171,5 +181,9 @@ class PmsWrapper():
 
         Returns -- SiLA DeviceIdentification
         """
-        [r, di] = PMS.GetDeviceIdentification(IPAddress.Parse(ipAddress), 8080, lockId, None, timeout)
-        return (SiLAReturnValueWrapper(r), DeviceIdentificationWrapper(di))
+        try:
+            [r, di] = PMS.GetDeviceIdentification(IPAddress.Parse(ipAddress), 8080, lockId, None, timeout)
+            return (SiLAReturnValueWrapper(r), DeviceIdentificationWrapper(di))
+        except ConnectException as ex:
+            logging.error(ex.Message)
+            raise
