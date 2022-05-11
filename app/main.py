@@ -359,7 +359,9 @@ if config['IHC']['ODTC'] == "True":
         assert odtc != None
         i = 0
         while i < iterations:
-            at = odtc.ReadActualTemperature().ResponseData.SensorValues
+            rv = odtc.ReadActualTemperature()
+            assert rv.Success == True
+            at = rv.ResponseData.SensorValues
             print("Async Polling RAT - Mount: " + str(at.Mount / 100))
             time.sleep(1)
             i += 1
