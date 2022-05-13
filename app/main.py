@@ -1,4 +1,4 @@
-import asyncio, sys, logging, threading
+import sys, logging, threading
 from typing import List
 import time
 logging.basicConfig(stream=sys.stderr, level=logging.DEBUG)
@@ -11,7 +11,7 @@ sys.path.append("/home/for/dev/IHC_PMS_Lib_1.9.2.0/bin")
 from ihcWrappers import *
 
 
-async def main():
+def main():
     print("### IHC_PMS_Lib Test Script ###")
     print("Configuration:")
     print("ODTC: " + config['IHC']['ODTC'])
@@ -217,28 +217,40 @@ async def main():
         print("ODTC Dll Version: " + OdtcWrapper.GetAssemblyVersion())
         deviceIp = "192.168.1.195" # predefined odtc ip
 
-        frOdtcs = OdtcFinderWrapper.SearchDevices()
-        if len(frOdtcs) == 0:
-            print("No ODTC found")
-        for val in frOdtcs:
-            print("Finder result: " + val.Name + " " + str(val.WsdlUri))
-            # Gather device info before Create()
-            status = PmsWrapper.GetStatus(val.IPv4Address)
-            print(val.Name + " state: " + status.State)
-            print(val.Name + " locked: " + status.Locked)
-            (r, di) = PmsWrapper.GetDeviceIdentification(val.IPv4Address)
-            assert r.ReturnCode == 1
-            print("Pre-connect GetDeviceIdentification: " + di.DeviceName + " " + di.Wsdl + " " + di.DeviceFirmwareVersion)
+        (r, di) = PmsWrapper.GetDeviceIdentification(deviceIp)
+        assert r.ReturnCode == 1
+        
+        status = PmsWrapper.GetStatus(deviceIp)
+        print(di.DeviceName + " state: " + status.State)
+        print(di.DeviceName + " locked: " + str(status.Locked))
+        print(di.DeviceName + " build: " + di.DeviceFirmwareVersion)
+        print(di.DeviceName + " fw: " + di.DeviceFirmwareVersion[29:32])
+        
+        legacy = False
+        if int(di.DeviceFirmwareVersion[29:32]) <= 232:
+            legacy = True
+
+        if not legacy: # skip finder for incompatible older versions
+            frOdtcs = OdtcFinderWrapper.SearchDevices()
+            if len(frOdtcs) == 0:
+                print("No ODTC found")
+            for val in frOdtcs:
+                print("Finder result: " + val.Name + " " + str(val.WsdlUri))
+                # Gather device info before Create()
+                status2 = PmsWrapper.GetStatus(val.IPv4Address)
+                print(val.Name + " state: " + status2.State)
+                print(val.Name + " locked: " + status2.Locked)
+                (r, di2) = PmsWrapper.GetDeviceIdentification(val.IPv4Address)
+                assert r.ReturnCode == 1
+                print("Pre-connect GetDeviceIdentification: " + di2.DeviceName + " " + di2.Wsdl + " " + di2.DeviceFirmwareVersion)
+
         # with pms.Create("http://10.2.2.8/odtc.wsdl") as odtc:
         #     odtc.Reset()
         #     odtc.Initialize()
 
-        status = PmsWrapper.GetStatus(deviceIp)
-        (r, di) = PmsWrapper.GetDeviceIdentification(deviceIp)
-        assert r.ReturnCode == 1
         # Download logs and latest trace file
         print("Start log/trace download...")
-        error = DownloadOdtcLogTraces(ip=deviceIp, path="/home/for/dev/logDownload/" + di.DeviceName, traceFileCount=1, logs=True)
+        error = DownloadOdtcLogTraces(ip=deviceIp, path="/home/for/dev/logDownload/" + di.DeviceName, traceFileCount=1, logs=True, legacy=legacy)
         assert(error is None)
         print("log/trace download finished")
 
@@ -256,7 +268,10 @@ async def main():
         print("Device Name: " + odtc.DeviceName)
         print("Current LockId: " + str(odtc.LockId))
         di = GetDeviceIdentification(odtc)
-        assert di.DeviceName == odtc.DeviceName
+        if legacy == False:
+            assert di.DeviceName == odtc.DeviceName
+        else:
+            assert di.DeviceName == "ODTC"
         s = GetStatus(odtc)
         assert s.State != "InError"
         rv = odtc.Reset()
@@ -403,25 +418,35 @@ if config['IHC']['ODTC'] == "True":
         assert res.Success == True
 
 if config['IHC']['ODTC'] == "True":
-    def DownloadOdtcLogTraces(ip: str, path: str, traceFileCount: int, logs: bool = True):
+    def DownloadOdtcLogTraces(ip: str, path: str, traceFileCount: int, logs: bool = True, legacy: bool = False):
         assert ip != None
         assert path != None
         downloader = OdtcDownloaderWrapper()
         if logs:
-            # Download SiLA logs
-            items = downloader.GetItems(ip, "SiLA")
-            for item in items:
-                item.Download = True
-            error = downloader.DownloadFtpItems(items, path)
-            if error is not None:
-                return error
-            # Download device logs
-            items = downloader.GetItems(ip, "Odtc")
-            for item in items:
-                item.Download = True
-            error = downloader.DownloadFtpItems(items, path)
-            if error is not None:
-                return error
+            if legacy:
+                # Download device logs
+                items = downloader.GetItems(ip, "Logs")
+                for item in items:
+                    if item.Value != "InhecoSiLA.log":
+                        item.Download = True
+                error = downloader.DownloadFtpItems(items, path)
+                if error is not None:
+                    return error
+            else:
+                # Download SiLA logs
+                items = downloader.GetItems(ip, "SiLA")
+                for item in items:
+                    item.Download = True
+                error = downloader.DownloadFtpItems(items, path)
+                if error is not None:
+                   return error
+                # Download device logs
+                items = downloader.GetItems(ip, "Odtc")
+                for item in items:
+                    item.Download = True
+                error = downloader.DownloadFtpItems(items, path)
+                if error is not None:
+                    return error
         # Download traces files
         if traceFileCount == 0:
             return None
@@ -472,4 +497,5 @@ if config['IHC']['SCILA'] == "True":
                 break
         return downloader.DownloadFtpItems(traces, path)
 
-asyncio.run(main())
+if __name__ == "__main__":
+    main()
