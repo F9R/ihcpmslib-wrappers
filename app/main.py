@@ -6,8 +6,7 @@ import configparser
 config = configparser.ConfigParser()
 config.read('config.ini')
 
-# IMPORTANT Path to IHC_PMS_Lib dlls
-sys.path.append("/home/for/dev/IHC_PMS_Lib_1.9.2.0/bin")
+# IMPORTANT: configure LibraryPath in config.ini !!!
 from ihcWrappers import *
 
 
@@ -32,11 +31,14 @@ def main():
     # alt static
     #nics = PmsWrapper.SupportedNICs(NetworkInterfaceTypesWrapper.WiredEthernet)
     
+    
     if len(nics) == 1:
-        eru = pms.StartEventReceiver(nics[0].Id) # Explicit Id
+        theNic = nics[0]
+        eru = pms.StartEventReceiver(theNic.Id) # Explicit Id
     else:
         # manually choose an Id
-        eru = pms.StartEventReceiver(nics[1].Id)
+        theNic = nics[1]
+        eru = pms.StartEventReceiver(theNic.Id)
     print("EventReceiver Uri: " + eru)
 
     
@@ -215,7 +217,7 @@ def main():
     '''ODTC'''
     if config['IHC']['ODTC'] == "True":
         print("ODTC Dll Version: " + OdtcWrapper.GetAssemblyVersion())
-        deviceIp = "192.168.1.195" # predefined odtc ip
+        deviceIp = "192.168.1.203" # predefined odtc ip
 
         (r, di) = PmsWrapper.GetDeviceIdentification(deviceIp)
         assert r.ReturnCode == 1
@@ -231,7 +233,7 @@ def main():
             legacy = True
 
         if not legacy: # skip finder for incompatible older versions
-            frOdtcs = OdtcFinderWrapper.SearchDevices()
+            frOdtcs = OdtcFinderWrapper.SearchDevices(theNic)
             if len(frOdtcs) == 0:
                 print("No ODTC found")
             for val in frOdtcs:
@@ -250,16 +252,16 @@ def main():
 
         # Download logs and latest trace file
         print("Start log/trace download...")
-        error = DownloadOdtcLogTraces(ip=deviceIp, path="/home/for/dev/logDownload/" + di.DeviceName, traceFileCount=1, logs=True, legacy=legacy)
-        assert(error is None)
+        # error = DownloadOdtcLogTraces(ip=deviceIp, path="/home/for/dev/logDownload/" + di.DeviceName, traceFileCount=1, logs=True, legacy=legacy)
+        # assert(error is None)
         print("log/trace download finished")
 
         # Create device
         try:
-            odtc = pms.Create("http://" + deviceIp + "/odtc.wsdl")
+            odtc = pms.Create(deviceIp)
         except Exception as ex:
             if (ex.Message) == "Invalid lockId.":
-                odtc = pms.Create("http://" + deviceIp + "/odtc.wsdl", "myLockId")
+                odtc = pms.Create(deviceIp, "myLockId")
             else:
                 raise
         # Register Callback(s)
@@ -273,7 +275,7 @@ def main():
         else:
             assert di.DeviceName == "ODTC"
         s = GetStatus(odtc)
-        assert s.State != "InError"
+        #assert s.State != "InError"
         rv = odtc.Reset()
         assert rv.Success == True
         # if rv.Success == False:

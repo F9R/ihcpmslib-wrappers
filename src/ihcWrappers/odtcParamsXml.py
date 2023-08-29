@@ -4,11 +4,8 @@ config.read('config.ini')
 if config['IHC']['ODTC'] != "True":
     pass
 
-import clr
-clr.AddReference("IHC_PMS_Lib.Odtc")
-
-from IHC_PMS_Lib.Odtc import OdtcParamsXml
-from IHC_PMS_Lib.Odtc.MethodXML import MethodSet
+from IhcPmsLib.Odtc import OdtcParamsXml
+from IhcPmsLib.Odtc.MethodXML import MethodSet
 
 
 class OdtcParamsXmlWrapper:

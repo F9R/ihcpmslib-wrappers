@@ -4,10 +4,8 @@ config.read('config.ini')
 if config['IHC']['SCILA'] != "True":
     pass
 
-import clr
-clr.AddReference("IHC_PMS_Lib.Scila")
 from System.Net.NetworkInformation import NetworkInterface
-from IHC_PMS_Lib.Scila.Finder import ScilaFinder
+from IhcPmsLib.Scila.Finder import ScilaFinder
 from typing import List
 from .finderResult import FinderResultWrapper
 
@@ -23,7 +21,7 @@ class ScilaFinderWrapper:
         Returns -- List of FinderResult
         """
         if nic == None:
-            fr = ScilaFinder.SearchDevices(timeout)
+            fr = ScilaFinder.SearchDevices(None, timeout)
             res = []
             for val in fr:
                 res.append(FinderResultWrapper(val))

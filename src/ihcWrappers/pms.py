@@ -12,30 +12,28 @@ config = configparser.ConfigParser()
 config.read('config.ini')
 
 import clr
-clr.AddReference("System")
-clr.AddReference("IHC_PMS_Lib")
 
-from System import Uri
+#from System import Uri
 from System import TimeSpan
 from System import Nullable
 from System import UInt16
 from System.Net import IPAddress
 from System.Net.NetworkInformation import NetworkInterface
 
-from IHC_PMS_Lib import PMS
-from IHC_PMS_Lib import EventReceiverException
-from IHC_PMS_Lib import ConnectException
-from IHC_PMS_Lib import DeviceException
-from IHC_PMS_Lib.Factory import DeviceFactory
+from IhcPmsLib import PMS
+from IhcPmsLib import EventReceiverException
+from IhcPmsLib import ConnectException
+from IhcPmsLib import DeviceException
+from IhcPmsLib.Factory import DeviceFactory
 
 if config['IHC']['ODTC'] == "True":
-    from IHC_PMS_Lib.Odtc import Odtc 
-    from IHC_PMS_Lib.Odtc.Factory import OdtcFactory
+    from IhcPmsLib.Odtc import Odtc 
+    from IhcPmsLib.Odtc.Factory import OdtcFactory
     from .odtc import OdtcWrapper
 
 if config['IHC']['SCILA'] == "True":
-    from IHC_PMS_Lib.Scila import Scila
-    from IHC_PMS_Lib.Scila.Factory import ScilaFactory
+    from IhcPmsLib.Scila import Scila
+    from IhcPmsLib.Scila.Factory import ScilaFactory
     from .scila import ScilaWrapper
 
 
@@ -85,15 +83,17 @@ class PmsWrapper():
             # print(uri)
             raise
 
-    def Create(self, wsdlUri: str, lockId: str = None):# -> DeviceWrapper:
+    def Create(self, ip: str, lockId: str = None):# -> DeviceWrapper:
         try:
-            device = DeviceFactory.Create(self.__pms, Uri(wsdlUri), TimeSpan.FromSeconds(10), None, lockId)
+            device = DeviceFactory.Create(self.__pms, IPAddress.Parse(ip), TimeSpan.FromSeconds(10), None, lockId)
             if config['IHC']['ODTC'] == "True":
-                if type(device) is Odtc:
+                if str(device.GetType()) == str(clr.GetClrType(Odtc)):
                     return OdtcWrapper(device)
             if config['IHC']['SCILA'] == "True":
-                if type(device) is Scila:
+                #if type(device) is Scila:
+                if str(device.GetType()) == str(clr.GetClrType(Scila)):
                     return ScilaWrapper(device)
+            logging.error("device type check failed.")
         except ConnectException as ex:
             logging.error(ex.Message)
             raise
@@ -102,9 +102,9 @@ class PmsWrapper():
             raise
         
     if config['IHC']['ODTC'] == "True":
-        def CreateOdtc(self, wsdlUri: str, lockId: str = None) -> OdtcWrapper:
+        def CreateOdtc(self, ip: str, lockId: str = None) -> OdtcWrapper:
             try:
-                odtc = OdtcFactory.Create(self.__pms, Uri(wsdlUri), TimeSpan.FromSeconds(10), None, lockId)
+                odtc = OdtcFactory.Create(self.__pms, IPAddress.Parse(ip), TimeSpan.FromSeconds(10), None, lockId)
                 return OdtcWrapper(odtc)
             except ConnectException as ex:
                 logging.error(ex.Message)
@@ -114,9 +114,9 @@ class PmsWrapper():
                 raise 
 
     if config['IHC']['SCILA'] == "True":
-        def CreateScila(self, wsdlUri: str, lockId: str = None) -> ScilaWrapper:
+        def CreateScila(self, ip: str, lockId: str = None) -> ScilaWrapper:
             try:
-                scila = ScilaFactory.Create(self.__pms, Uri(wsdlUri), TimeSpan.FromSeconds(10), None, lockId)
+                scila = ScilaFactory.Create(self.__pms, IPAddress.Parse(ip), TimeSpan.FromSeconds(10), None, lockId)
                 return ScilaWrapper(scila)
             except ConnectException as ex:
                 logging.error(ex.Message)

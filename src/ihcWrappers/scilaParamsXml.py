@@ -4,13 +4,10 @@ config.read('config.ini')
 if config['IHC']['SCILA'] != "True":
     pass
 
-import clr
-clr.AddReference("IHC_PMS_Lib.Scila")
-
 from System import Nullable
 from System import Int32
 from System import Boolean
-from IHC_PMS_Lib.Scila import ScilaParamsXml
+from IhcPmsLib.Scila import ScilaParamsXml
 
 
 class ScilaParamsXmlWrapper:

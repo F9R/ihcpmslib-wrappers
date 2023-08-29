@@ -1,5 +1,5 @@
 import clr
-clr.AddReference("System.Net")
+clr.AddReference("System.Net.NetworkInformation")
 
 class NetworkInterfaceWrapper:
     def __init__(self, networkInterface) -> None:

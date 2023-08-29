@@ -6,12 +6,12 @@ from .responseValue import ResponseValueWrapper
 from .status import StatusWrapper
 from .deviceIdentification import DeviceIdentificationWrapper
 
-import clr
+#import clr
 from System import Nullable
 from System import Int32
-from IHC_PMS_Lib import SiLARequestException
-from IHC_PMS_Lib import SiLAResponseException
-from IHC_PMS_Lib import CommandException
+from IhcPmsLib import SiLARequestException
+from IhcPmsLib import SiLAResponseException
+from IhcPmsLib import CommandException
 
 
 class DeviceWrapper:

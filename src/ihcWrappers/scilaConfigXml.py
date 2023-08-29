@@ -4,13 +4,10 @@ config.read('config.ini')
 if config['IHC']['SCILA'] != "True":
     pass
 
-import clr
-clr.AddReference("IHC_PMS_Lib.Scila")
-
-# rom System import Nullable
+# from System import Nullable
 from System import DateTime
-from IHC_PMS_Lib.Inheco import NetworkType
-from IHC_PMS_Lib.Scila import ScilaConfigXml
+from IhcPmsLib.Inheco import NetworkType
+from IhcPmsLib.Scila import ScilaConfigXml
 
 class ScilaConfigXmlWrapper:
     def __init__(self) -> None:

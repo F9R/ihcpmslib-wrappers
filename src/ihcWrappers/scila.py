@@ -5,8 +5,6 @@ if config['IHC']['SCILA'] != "True":
     pass
 
 import logging
-import clr
-clr.AddReference("IHC_PMS_Lib.Scila")
 
 from .device import DeviceWrapper
 from .responseValue import ResponseValueWrapper
@@ -27,10 +25,10 @@ from System import Int32
 from System import Double
 from System import Boolean
 
-from IHC_PMS_Lib import SiLARequestException
-from IHC_PMS_Lib import SiLAResponseException
-from IHC_PMS_Lib import CommandException
-from IHC_PMS_Lib.Scila import Scila
+from IhcPmsLib import SiLARequestException
+from IhcPmsLib import SiLAResponseException
+from IhcPmsLib import CommandException
+from IhcPmsLib.Scila import Scila
 
 
 class ScilaWrapper(DeviceWrapper):

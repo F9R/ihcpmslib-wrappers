@@ -8,12 +8,8 @@ import logging
 from typing import List
 from .ftpItem import FtpItemWrapper
 
-import clr
-clr.AddReference("System")
-clr.AddReference("IHC_PMS_Lib.Odtc")
-
 from System import Array
-from IHC_PMS_Lib.Odtc.Logs import OdtcDownloader
+from IhcPmsLib.Odtc.Logs import OdtcDownloader
 
 class OdtcDownloaderWrapper:
     

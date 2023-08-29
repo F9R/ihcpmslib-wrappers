@@ -4,10 +4,8 @@ config.read('config.ini')
 if config['IHC']['ODTC'] != "True":
     pass
 
-import clr
-clr.AddReference("IHC_PMS_Lib.Odtc")
 from System.Net.NetworkInformation import NetworkInterface
-from IHC_PMS_Lib.Odtc.Finder import OdtcFinder
+from IhcPmsLib.Odtc.Finder import OdtcFinder
 from typing import List
 from .finderResult import FinderResultWrapper
 

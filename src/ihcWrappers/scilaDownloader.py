@@ -8,12 +8,8 @@ import logging
 from typing import List
 from .ftpItem import FtpItemWrapper
 
-import clr
-clr.AddReference("System")
-clr.AddReference("IHC_PMS_Lib.Scila")
-
 from System import Array
-from IHC_PMS_Lib.Scila.Logs import ScilaDownloader
+from IhcPmsLib.Scila.Logs import ScilaDownloader
 
 class ScilaDownloaderWrapper:
     

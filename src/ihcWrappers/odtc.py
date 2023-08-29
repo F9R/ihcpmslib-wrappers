@@ -15,15 +15,15 @@ from .responseValueGetConfiguration import ResponseValueWrapperGetConfiguration
 from .responseValueGetParametersOdtc import ResponseValueWrapperGetParametersOdtc
 from .statusEventArgs import StatusEventArgsWrapper
 
-import clr
-clr.AddReference("IHC_PMS_Lib.Odtc")
+# import clr
+# clr.AddReference("IhcPmsLib.Odtc")
 
 from System import Nullable
 from System import Int32
-from IHC_PMS_Lib import SiLARequestException
-from IHC_PMS_Lib import SiLAResponseException
-from IHC_PMS_Lib import CommandException
-from IHC_PMS_Lib.Odtc import Odtc
+from IhcPmsLib import SiLARequestException
+from IhcPmsLib import SiLAResponseException
+from IhcPmsLib import CommandException
+from IhcPmsLib.Odtc import Odtc
 
 class OdtcWrapper(DeviceWrapper):
     def __init__(self, odtc):

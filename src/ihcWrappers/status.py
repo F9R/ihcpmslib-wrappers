@@ -25,7 +25,7 @@ class StatusWrapper:
 
     @property
     def State(self) -> str:
-        return StateWrapper(self.__s.State).name
+        return StateWrapper(self.__s.State.value__).name
 
     @property
     def SubStates(self) -> List[CommandDescriptionWrapper]:

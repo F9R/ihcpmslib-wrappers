@@ -5,12 +5,10 @@ if config['IHC']['ODTC'] != "True":
     pass
 
 from enum import Enum
-import clr
-clr.AddReference("IHC_PMS_Lib.Odtc")
 
 from System import DateTime
-from IHC_PMS_Lib.Inheco import NetworkType
-from IHC_PMS_Lib.Odtc import OdtcConfigXml
+from IhcPmsLib.Inheco import NetworkType
+from IhcPmsLib.Odtc import OdtcConfigXml
 
 class OdtcConfigXmlWrapper:
     def __init__(self) -> None:
